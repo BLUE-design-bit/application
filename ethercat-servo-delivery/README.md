@@ -8,6 +8,14 @@
 
 ## 从这里开始
 
+品牌对照实测请使用 [Excel 品牌实测 checklist](outputs/01a08f03-8e5c-79e3-bb07-33816e14789f/EtherCAT_品牌实测_checklist.xlsx)（2026-09-14）。完整保留109项，右侧列出 CDHD、台达、繁易、Elmo、KEBA（可选），初始均未测试。
+
+Excel 中先登记“设备与判据”，再在“品牌勾选”逐格下拉选择，并在“实测记录”按品牌和检查项填写测试人、日期、实际表现及证据。勾选表示已上机操作；达标、有差异、实测不支持分别记录。只查手册、阻塞或不适用不算实测。每列对应一套固定型号/固件/PLC组合，换组合时另存整本，不将不同组合的结果拼成一个勾。
+
+“已勾选项数”与“实测记录齐全数”分别统计，核证仍需逐项核对编号与证据。开发、测试工程师共用一张品牌矩阵，个人责任记录在“测试人 / 岗位”中。当前文件是空白实测模板，没有预填品牌能力或结果。
+
+原 Markdown 保留为检查项依据及维护源：
+
 1. 阅读 [研究结论与客户路径](research/01-customer-journey.md)，确定交付边界。
 2. 填写 [产品与客户基线](templates/01-product-customer-baseline.md)，先锁定真实客户的 PLC、版本、模式与机械参数。
 3. 按 [验收 checklist](acceptance-checklist.md) 执行，为每项记录结果和证据；需要展开步骤时使用 [单项验收记录](templates/02-test-record.md)。
@@ -22,6 +30,7 @@
 | [Omron 与平台边界](research/03-omron-platform-scope.md) | Sysmac 接入要求及其他 PLC 平台的适用范围 |
 | [协议、异常与恢复](research/04-protocol-recovery.md) | 双状态机、同步、通信异常、换机和升级 |
 | [验收 checklist](acceptance-checklist.md) | 109项按客户操作编排的检查项、证据要求与放行规则 |
+| [Excel 品牌实测 checklist](outputs/01a08f03-8e5c-79e3-bb07-33816e14789f/EtherCAT_品牌实测_checklist.xlsx) | 五品牌勾选矩阵、545条待填实测记录、设备组合及判据 |
 
 引用的是 ETG、PLCopen 和厂商官方资料，各研究文档附具体链接与读取范围。厂商的某项实现不自动成为所有伺服的要求。阈值、重复次数与放行分级属于本项目建议，需要在产品基线中冻结。
 

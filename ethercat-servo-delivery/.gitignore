@@ -5,3 +5,5 @@ evidence/raw/
 __pycache__/
 *.tmp
 ~$*
+node_modules/
+*.xlsx.inspect.ndjson
