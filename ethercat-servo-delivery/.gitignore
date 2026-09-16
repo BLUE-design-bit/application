@@ -7,3 +7,5 @@ __pycache__/
 ~$*
 node_modules/
 *.xlsx.inspect.ndjson
+# 第三方标准PDF本地留存；仓库记录来源、版本和校验值，不再分发原文。
+standards/downloads/*.pdf
