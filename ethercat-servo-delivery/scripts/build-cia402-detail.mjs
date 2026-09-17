@@ -6,16 +6,17 @@ import {FileBlob,SpreadsheetFile} from '@oai/artifact-tool';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const cache=path.join(root,'.cache/cia402-detail');
 const dir=path.join(root,'outputs/01a08f03-8e5c-79e3-bb07-33816e14789f');
-const input=path.join(dir,'DFS10A_CiA402_V3_模块覆盖初审.xlsx');
-const out=path.join(dir,'DFS10A_CiA402_V3_数据类型逐项核对_v2.xlsx');
-const data=JSON.parse(await fs.readFile(path.join(cache,'detail-data.json'),'utf8'));
-assert.equal(data.types.length,24);
+const full=process.argv.includes('--full');
+const input=path.join(dir,full?'DFS10A_CiA402_V3_数据类型逐项核对_v2.xlsx':'DFS10A_CiA402_V3_模块覆盖初审.xlsx');
+const out=path.join(dir,full?'DFS10A_CiA402_V3_全章节逐项核对_v3.xlsx':'DFS10A_CiA402_V3_数据类型逐项核对_v2.xlsx');
+const data=JSON.parse(await fs.readFile(path.join(cache,full?'full-detail-data.json':'detail-data.json'),'utf8'));
+if(!full)assert.equal(data.types.length,24);
 const wb=await SpreadsheetFile.importXlsx(await FileBlob.load(input));
 const snapshot=wb.worksheets.getItemAt(0).getRange('A1:H27').values;
 const before=await wb.render({sheetName:'目录模块总览',range:'A6:H12',scale:1,format:'png'});
 await fs.writeFile(path.join(cache,'before.png'),new Uint8Array(await before.arrayBuffer()));
 const navy='#274560',ink='#243547';
-let counter=0;
+let counter=full?1:0;
 const column=i=>{let s='';for(let n=i+1;n;n=Math.floor((n-1)/26))s=String.fromCharCode(65+(n-1)%26)+s;return s;};
 const created=[];
 function add(name,title,note,headers,rows,widths,checkColumn,statusColumn){
@@ -48,15 +49,24 @@ function add(name,title,note,headers,rows,widths,checkColumn,statusColumn){
  }
  sh.freezePanes.freezeRows(6);sh.freezePanes.freezeColumns(2);return sh;
 }
-add('数据类型逐项','第5章 数据类型逐项核对','表1的11种类型 + 表2–4的13个字段全部列入。黄色列由工程师核对；“已核对”不等于实机符合性通过。',
+if(!full)add('数据类型逐项','第5章 数据类型逐项核对','表1的11种类型 + 表2–4的13个字段全部列入。黄色列由工程师核对；“已核对”不等于实机符合性通过。',
  ['编号','协议条款','标准表/页','数据类型 / 记录字段','协议规定','当前判断','现在的实现','尚缺 / 判定边界','代码依据（路径相对df-sdk/modules/）','人工核对','核对备注 / 实测证据'],
  data.types,[110,78,150,260,325,160,405,385,340,115,280],9,5);
+else {
+ const heads=['编号','协议条款','标准表/页','逐项检查内容','协议规定 / 原文及修订提示','适用条件','当前判断','现在的实现 / 尚缺什么','代码依据（相对dfs-10a）','人工核对','核对备注 / 实测证据'];
+ add('对象属性逐项','第6–20章 对象及子项属性','按原表逐项比较；连续子项范围已展开。未提供可选对象不自动违规；声明一致不等于行为符合。',heads,data.attributes,[155,90,175,250,460,340,190,460,370,115,280],9,6);
+ add('行为与位定义逐项','状态、动作、取值与位定义','包含源表逐行要求、FSA状态×功能、图中逐个位定义及勘误新增项；黄色列留给工程师逐项核对。',heads,data.behaviors,[155,90,190,310,530,300,190,470,380,115,280],9,6);
+ add('正文条款逐项','第6–20章 正文条款与图示','保留正文要求及图示定位；附2010勘误的条款已提示优先级。图中的箭头、曲线和空间关系须结合对应PDF页核对。',heads,data.narrative,[125,90,175,340,680,270,190,500,400,115,280],9,6);
+ add('勘误逐项','客户PDF附带的2010年勘误','73条原始修订指令分别列入，并对应当前实现。表格替换已应用到明细，正文新增/删改须按此表优先解读。',heads,data.corrigendum,[100,90,230,200,760,300,190,450,380,115,280],9,6);
+ add('来源覆盖索引','标准来源覆盖与审查基线','表1–250、后续194个目录条款与图1–72全部定位。行数只表示列入清单，不是实现率或符合率。',
+ ['来源编号','协议条款 / 类别','来源名称 / 说明','PDF页码 / 日期','展开位置 / 类别','检查行数 / 基线值'],data.coverage,[130,170,650,150,370,530],null,null);
+}
 assert.deepEqual(wb.worksheets.getItemAt(0).getRange('A1:H27').values,snapshot);
 await wb.recalculate();
 console.log((await wb.inspect({kind:'sheet',include:'id,name',maxChars:2300})).ndjson);
 await (await SpreadsheetFile.exportXlsx(wb)).save(out);
 for(const [i,s]of created.entries()){
  const png=await wb.render({sheetName:s.name,range:`A6:${column(s.n-1)}${Math.min(11,s.end)}`,scale:1,format:'png'});
- await fs.writeFile(path.join(cache,`sheet-${i+1}.png`),new Uint8Array(await png.arrayBuffer()));
+ await fs.writeFile(path.join(cache,`${full?'full-':''}sheet-${i+1}.png`),new Uint8Array(await png.arrayBuffer()));
 }
 console.log(out);

@@ -35,12 +35,12 @@ with pdfplumber.open(root/'CiA-402-2-version-3.0.0.pdf') as pdf:
             elif kind=='caption': caption=(y,*value)
             else:
                 t=value
+                rows=[[clean(c) if c is not None else None for c in row] for row in t.extract()]
                 if caption and 0<=y-caption[0]<65:
                     num,cap=caption[1:]
-                elif y<125 and lasttable and n==lasttable['page']+1:
+                elif y<125 and lasttable and n==lasttable['page']+1 and rows and rows[0]==lasttable['rows'][0]:
                     num,cap=lasttable['number'],lasttable['caption']
                 else: continue
-                rows=[[clean(c) if c is not None else None for c in row] for row in t.extract()]
                 record=dict(page=n,section=section,title=title,object=obj,number=num,caption=cap,rows=rows)
                 tables.append(record); lasttable=record; boxes.append(t.bbox); caption=None
         # Text outside ruled tables retains narrative and figure labels, in page order.
